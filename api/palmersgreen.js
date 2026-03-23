@@ -1,12 +1,12 @@
 export default async function handler(req, res) {
   try {
-    const response = await fetch("https://www.churchservices.tv/palmersgreen", {
+    const page = await fetch("https://www.churchservices.tv/palmersgreen", {
       headers: {
         "User-Agent": "Mozilla/5.0",
       },
     });
 
-    const html = await response.text();
+    const html = await page.text();
 
     const match = html.match(/https:\/\/[^\s"]+\.m3u8[^\s"]*/);
 
@@ -16,9 +16,20 @@ export default async function handler(req, res) {
 
     const streamUrl = match[0];
 
-    return res.redirect(streamUrl);
+    // Fetch the actual playlist with proper headers
+    const streamRes = await fetch(streamUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0",
+        "Referer": "https://www.churchservices.tv/",
+      },
+    });
+
+    const content = await streamRes.text();
+
+    res.setHeader("Content-Type", "application/vnd.apple.mpegurl");
+    res.send(content);
+
   } catch (err) {
-    return res.status(500).send("Error: " + err.message);
+    res.status(500).send(err.toString());
   }
-// trigger deploy
 }
