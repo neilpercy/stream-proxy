@@ -1,9 +1,13 @@
 export default async function handler(req, res) {
   try {
-    const response = await fetch("https://www.churchservices.tv/palmersgreen");
+    const response = await fetch("https://www.churchservices.tv/palmersgreen", {
+      headers: {
+        "User-Agent": "Mozilla/5.0",
+      },
+    });
+
     const html = await response.text();
 
-    // Try to find m3u8 stream
     const match = html.match(/https:\/\/[^\s"]+\.m3u8[^\s"]*/);
 
     if (!match) {
@@ -12,13 +16,9 @@ export default async function handler(req, res) {
 
     const streamUrl = match[0];
 
-    // Redirect user to live stream
-    res.writeHead(302, {
-      Location: streamUrl,
-    });
-
-    res.end();
+    return res.redirect(streamUrl);
   } catch (err) {
-    res.status(500).send("Error: " + err.message);
+    return res.status(500).send("Error: " + err.message);
   }
+// trigger deploy
 }
